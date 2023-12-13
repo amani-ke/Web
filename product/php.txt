@@ -1,0 +1,106 @@
+<?php
+
+// Product.php
+
+class Product {
+    public $product_id;
+    public $product_name;
+    public $unit_price;
+
+    public function __construct($id, $name, $price) {
+        $this->product_id = $id;
+        $this->product_name = $name;
+        $this->unit_price = $price;
+    }
+}
+
+
+
+?>
+
+Database......
+
+public function read_products() {
+        $query = "SELECT product_id, product_name, unit_price FROM Product";
+        $statement = $this->cursor->prepare($query);
+        $statement->execute();
+
+        $products = [];
+
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $products[] = new Product($row['product_id'], $row['product_name'], $row['unit_price']);
+        }
+
+        return $products;
+    }
+
+    public function update_product($product_id, $new_price) {
+        $query = "UPDATE Product SET unit_price = :new_price WHERE product_id = :product_id";
+        $statement = $this->cursor->prepare($query);
+        $statement->bindParam(':new_price', $new_price, PDO::PARAM_STR);
+        $statement->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+        $statement->execute();
+    }
+
+
+index............
+include("Product.php");
+
+    $dbconnection = MysqlDatabase::get_instance();
+
+    // Handle form submission for updating product prices
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $product_id = $_POST["prodid"];
+        $new_price = $_POST["unit_price"];
+
+        // Call the update_product method in MysqlDatabase class to update the product
+        $dbconnection->update_product($product_id, $new_price);
+
+        // Redirect to prevent form resubmission on page refresh
+        header("Location: index.php");
+        exit();
+}
+
+    // Read products from the database
+    $products = $dbconnection->read_products();
+ 
+
+........
+
+
+
+<tbody>
+                      <?php foreach ($products as $product) : ?>
+                          <tr>
+                              <td><?= $product->product_id ?></td>
+                              <td><?= $product->product_name ?></td>
+                              <td>
+                                  <form method="POST" action="index.php">
+                                      <input type="hidden" name="prodid" value="<?= $product->product_id ?>">
+                                      <input name="unit_price" type="number" step="0.01" value="<?= $product->unit_price ?>" class="form-control">
+                                      <button type="submit" class="btn btn-primary"><i class="fa fa-edit"></i></button>
+                                  </form>
+                              </td>
+                          </tr>
+                      <?php endforeach; ?>
+                  </tbody>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
